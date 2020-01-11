@@ -9,6 +9,7 @@ AutoPID::AutoPID(double *input, double *setpoint, double *output, double outputM
   _outputMax = outputMax;
   setGains(Kp, Ki, Kd);
   _timeStep = 1000;
+  _stopped = true;
 }//AutoPID::AutoPID
 
 void AutoPID::setGains(double Kp, double Ki, double Kd) {
@@ -46,12 +47,16 @@ void AutoPID::run() {
     reset();
   }
   //if bang thresholds are defined and we're outside of them, use bang-bang control
-  if (_bangOn && ((*_setpoint - *_input) > _bangOn)) {
-    *_output = _outputMax;
+  if (_bangOn && (fabs(*_setpoint - *_input) > _bangOn)) {
+	if ((*_setpoint - *_input) > _bangOn) {
+	  *_output = _outputMax;
+	} else {
+	  *_output = _outputMin;
+	}
     _lastStep = millis();
-  } else if (_bangOff && ((*_input - *_setpoint) > _bangOff)) {
-    *_output = _outputMin;
-    _lastStep = millis();
+  } else if (_bangOff && (fabs(*_setpoint - *_input) < _bangOff)) {
+    *_output = 0;
+    reset(); // reset the integral and derivative part to avoid windup
   } else {                                    //otherwise use PID control
     unsigned long _dT = millis() - _lastStep;   //calculate time since last update
     if (_dT >= _timeStep) {                     //if long enough, do PID calculations
