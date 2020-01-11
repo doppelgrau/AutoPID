@@ -1,7 +1,7 @@
 #include "AutoPID.h"
 
-AutoPID::AutoPID(double *input, double *setpoint, double *output, double outputMin, double outputMax,
-                 double Kp, double Ki, double Kd) {
+AutoPID::AutoPID(float *input, float *setpoint, float *output, float outputMin, float outputMax,
+                 float Kp, float Ki, float Kd) {
   _input = input;
   _setpoint = setpoint;
   _output = output;
@@ -12,22 +12,22 @@ AutoPID::AutoPID(double *input, double *setpoint, double *output, double outputM
   _stopped = true;
 }//AutoPID::AutoPID
 
-void AutoPID::setGains(double Kp, double Ki, double Kd) {
+void AutoPID::setGains(float Kp, float Ki, float Kd) {
   _Kp = Kp;
   _Ki = Ki;
   _Kd = Kd;
 }//AutoPID::setControllerParams
 
-void AutoPID::setBangBang(double bangOn, double bangOff) {
+void AutoPID::setBangBang(float bangOn, float bangOff) {
   _bangOn = bangOn;
   _bangOff = bangOff;
 }//void AutoPID::setBangBang
 
-void AutoPID::setBangBang(double bangRange) {
+void AutoPID::setBangBang(float bangRange) {
   setBangBang(bangRange, bangRange);
 }//void AutoPID::setBangBang
 
-void AutoPID::setOutputRange(double outputMin, double outputMax) {
+void AutoPID::setOutputRange(float outputMin, float outputMax) {
   _outputMin = outputMin;
   _outputMax = outputMax;
 }//void AutoPID::setOutputRange
@@ -37,7 +37,7 @@ void AutoPID::setTimeStep(unsigned long timeStep){
 }
 
 
-bool AutoPID::atSetPoint(double threshold) {
+bool AutoPID::atSetPoint(float threshold) {
   return abs(*_setpoint - *_input) <= threshold;
 }//bool AutoPID::atSetPoint
 
@@ -68,7 +68,7 @@ void AutoPID::run() {
       _previousError = _error;
       double PID = (_Kp * _error) + (_Ki * _integral) + (_Kd * _dError);
       //*_output = _outputMin + (constrain(PID, 0, 1) * (_outputMax - _outputMin));
-      *_output = constrain(PID, _outputMin, _outputMax);
+      *_output = (float)constrain(PID, _outputMin, _outputMax);
     }
   }
 }//void AutoPID::run
@@ -94,16 +94,3 @@ double AutoPID::getIntegral(){
 void AutoPID::setIntegral(double integral){
   _integral = integral;
 }
-
-void AutoPIDRelay::run() {
-  AutoPID::run();
-  while ((millis() - _lastPulseTime) > _pulseWidth) _lastPulseTime += _pulseWidth;
-  *_relayState = ((millis() - _lastPulseTime) < (_pulseValue * _pulseWidth));
-}
-
-
-double AutoPIDRelay::getPulseValue(){
-  return (isStopped()?0:_pulseValue);
-}
-
-

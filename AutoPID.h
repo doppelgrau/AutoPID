@@ -6,20 +6,20 @@ class AutoPID {
 
   public:
     // Constructor - takes pointer inputs for control variales, so they are updated automatically
-    AutoPID(double *input, double *setpoint, double *output, double outputMin, double outputMax,
-            double Kp, double Ki, double Kd);
+    AutoPID(float *input, float *setpoint, float *output, float outputMin, float outputMax,
+            float Kp, float Ki, float Kd);
     // Allows manual adjustment of gains
-    void setGains(double Kp, double Ki, double Kd);
+    void setGains(float Kp, float Ki, float Kd);
     // Sets bang-bang control ranges, separate upper and lower offsets, zero for off
-    void setBangBang(double bangOn, double bangOff);
+    void setBangBang(float bangOn, float bangOff);
     // Sets bang-bang control range +-single offset
-    void setBangBang(double bangRange);
+    void setBangBang(float bangRange);
     // Allows manual readjustment of output range
-    void setOutputRange(double outputMin, double outputMax);
+    void setOutputRange(float outputMin, float outputMax);
     // Allows manual adjustment of time step (default 1000ms)
     void setTimeStep(unsigned long timeStep);
     // Returns true when at set point (+-threshold)
-    bool atSetPoint(double threshold);
+    bool atSetPoint(float threshold);
     // Runs PID calculations when needed. Should be called repeatedly in loop.
     // Automatically reads input and sets output via pointers
     void run();
@@ -32,33 +32,14 @@ class AutoPID {
     void setIntegral(double integral);
 
   private:
-    double _Kp, _Ki, _Kd;
+    float _Kp, _Ki, _Kd;
     double _integral, _previousError;
-    double _bangOn, _bangOff;
-    double *_input, *_setpoint, *_output;
-    double _outputMin, _outputMax;
+    float _bangOn, _bangOff;
+    float *_input, *_setpoint, *_output;
+    float _outputMin, _outputMax;
     unsigned long _timeStep, _lastStep;
     bool _stopped;
 
 };//class AutoPID
-
-class AutoPIDRelay : public AutoPID {
-  public:
-
-    AutoPIDRelay(double *input, double *setpoint, bool *relayState, double pulseWidth, double Kp, double Ki, double Kd)
-      : AutoPID(input, setpoint, &_pulseValue, 0, 1.0, Kp, Ki, Kd) {
-      _relayState = relayState;
-      _pulseWidth = pulseWidth;
-    };
-
-    void run();
-
-    double getPulseValue();
-
-  private:
-    bool * _relayState;
-    unsigned long _pulseWidth, _lastPulseTime;
-    double _pulseValue;
-};//class AutoPIDRelay
 
 #endif
